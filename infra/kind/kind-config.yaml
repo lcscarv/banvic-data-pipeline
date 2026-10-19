@@ -1,6 +1,9 @@
 kind: Cluster
 apiVersion: kind.x-k8s.io/v1alpha4
 name: banvic
+# Um único nó (o control-plane também roda workloads): Postgres + Airflow com LocalExecutor
+# cabem em um nó, e workers extras só consumiriam RAM local sem ganho para o desafio.
+# Em produção o cluster seria gerenciado (EKS/GKE) com node pools separados.
 nodes:
   - role: control-plane
     extraPortMappings:
@@ -8,7 +11,8 @@ nodes:
       - containerPort: 30080
         hostPort: 8080
     extraMounts:
-      # Disponibiliza os CSVs para os pods (simula o sistema legado on-premise)
-      - hostPath: ./data/raw   # TODO(você): confirme que o caminho funciona a partir de onde roda o kind
+      # Disponibiliza os CSVs para os pods (simula o sistema legado on-premise).
+      # __DATA_DIR__ é trocado pelo caminho absoluto no `make cluster`, para o
+      # cluster subir igual independente do diretório de onde o kind é chamado.
+      - hostPath: __DATA_DIR__
         containerPath: /data/raw
-  # TODO(você): adicionar workers? Justifique a decisão (recursos locais vs. realismo).

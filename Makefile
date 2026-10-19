@@ -4,7 +4,8 @@ ZIP ?= ../banvic_data2026.zip
 .PHONY: cluster deploy data secrets clean
 
 cluster:
-	kind create cluster --config infra/kind/kind-config.yaml
+	mkdir -p data/raw
+	sed "s|__DATA_DIR__|$(CURDIR)/data/raw|" infra/kind/kind-config.yaml | kind create cluster --config=-
 
 secrets:
 	@set -a; . ./.env; set +a; \
@@ -18,6 +19,7 @@ deploy:
 	kubectl apply -f infra/k8s/namespace.yaml
 	$(MAKE) secrets
 	kubectl apply -f infra/k8s/postgres.yaml
+	kubectl -n $(NAMESPACE) rollout status statefulset/postgres --timeout=180s
 	# TODO(você): instalar o Airflow via helm (chart oficial apache-airflow) com infra/k8s/airflow-values.yaml
 
 data:

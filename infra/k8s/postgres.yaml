@@ -34,10 +34,33 @@ spec:
           envFrom:
             - secretRef:
                 name: banvic-db
+          env:
+            # Subpasta evita conflito com arquivos já presentes no volume (ex.: lost+found) no initdb.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           volumeMounts:
             - name: data
               mountPath: /var/lib/postgresql/data
-          # TODO(você): adicionar readinessProbe/livenessProbe (pg_isready) e resources requests/limits
+          # Readiness: o Service só envia tráfego quando o banco aceita conexões.
+          readinessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""]
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          # Liveness: reinicia o container se o Postgres parar de responder.
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U \"$POSTGRES_USER\" -d \"$POSTGRES_DB\""]
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
   volumeClaimTemplates:
     - metadata:
         name: data
