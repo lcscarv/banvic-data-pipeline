@@ -1,0 +1,26 @@
+# Values para o chart oficial apache-airflow (helm repo add apache-airflow https://airflow.apache.org)
+# TODO(você): complete e justifique cada escolha.
+executor: LocalExecutor   # TODO(você): por que não KubernetesExecutor/Celery neste cenário?
+
+webserver:
+  service:
+    type: NodePort
+    ports:
+      - name: airflow-ui
+        port: 8080
+        nodePort: 30080
+
+# TODO(você): como as DAGs chegam ao cluster? (gitSync, imagem custom ou volume)
+# dags:
+#   gitSync: {}
+
+# TODO(você): imagem customizada com Meltano instalado? Ou KubernetesPodOperator com imagem do Meltano?
+# images:
+#   airflow:
+#     repository:
+#     tag:
+
+# TODO(você): injetar credenciais do Postgres via Secret (extraEnvFrom), nunca em texto puro
+# extraEnvFrom: |
+#   - secretRef:
+#       name: banvic-db

@@ -1,0 +1,14 @@
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: banvic
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      # Airflow webserver (NodePort)
+      - containerPort: 30080
+        hostPort: 8080
+    extraMounts:
+      # Disponibiliza os CSVs para os pods (simula o sistema legado on-premise)
+      - hostPath: ./data/raw   # TODO(você): confirme que o caminho funciona a partir de onde roda o kind
+        containerPath: /data/raw
+  # TODO(você): adicionar workers? Justifique a decisão (recursos locais vs. realismo).

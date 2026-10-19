@@ -1,0 +1,48 @@
+# Data Warehouse simulado. Credenciais vêm do Secret "banvic-db" (ver `make secrets`).
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: banvic
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: banvic
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: banvic-db
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          # TODO(você): adicionar readinessProbe/livenessProbe (pg_isready) e resources requests/limits
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi

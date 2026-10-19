@@ -1,0 +1,41 @@
+version: 1
+default_environment: dev
+project_id: banvic-pipeline
+
+environments:
+  - name: dev
+
+plugins:
+  extractors:
+    - name: tap-csv
+      variant: meltanolabs
+      pip_url: git+https://github.com/MeltanoLabs/tap-csv.git
+      config:
+        files:
+          # Uma entrada por tabela do ERP. `keys` define a chave primária usada no upsert.
+          - entity: agencias
+            path: /data/raw/agencias.csv
+            keys: [cod_agencia]
+          - entity: clientes
+            path: /data/raw/clientes.csv
+            keys: [cod_cliente]
+          # TODO(você): complete as 5 tabelas restantes
+          #   colaborador_agencia (chave composta?), colaboradores, contas, propostas_credito, transacoes
+          # Dica: confira o header de cada CSV em data/raw para definir as chaves.
+
+  loaders:
+    - name: target-postgres
+      variant: meltanolabs
+      pip_url: meltanolabs-target-postgres
+      config:
+        # Credenciais via variáveis de ambiente (TARGET_POSTGRES_*), nunca aqui.
+        default_target_schema: raw
+        # TODO(você): estratégia de carga e idempotência
+        #   - upsert por chave primária? (por isso `keys` no tap)
+        #   - overwrite da tabela? Qual a diferença e quando usar cada uma?
+        # load_method: upsert
+
+# TODO(você): defina o job (tap-csv -> target-postgres) que o Airflow vai chamar
+# jobs:
+#   - name: ingest_erp
+#     tasks: [tap-csv target-postgres]

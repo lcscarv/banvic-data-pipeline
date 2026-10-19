@@ -1,0 +1,10 @@
+.env
+docs/
+infra/k8s/secrets.yaml
+data/raw/*
+!data/raw/.gitkeep
+meltano/.meltano/
+meltano/output/
+__pycache__/
+*.pyc
+.DS_Store
