@@ -2,6 +2,9 @@ version: 1
 default_environment: dev
 project_id: banvic-pipeline
 
+# Diretório dos CSVs vem de BANVIC_DATA_DIR: /data/raw no cluster (definido no values do Airflow),
+# $PWD/data/raw localmente. Não há default aqui porque o `env:` do meltano.yml sobrescreveria o do terminal.
+
 environments:
   - name: dev
 
@@ -14,14 +17,27 @@ plugins:
         files:
           # Uma entrada por tabela do ERP. `keys` define a chave primária usada no upsert.
           - entity: agencias
-            path: /data/raw/agencias.csv
+            path: ${BANVIC_DATA_DIR}/agencias.csv
             keys: [cod_agencia]
           - entity: clientes
-            path: /data/raw/clientes.csv
+            path: ${BANVIC_DATA_DIR}/clientes.csv
             keys: [cod_cliente]
-          # TODO(você): complete as 5 tabelas restantes
-          #   colaborador_agencia (chave composta?), colaboradores, contas, propostas_credito, transacoes
-          # Dica: confira o header de cada CSV em data/raw para definir as chaves.
+          # Tabela associativa colaborador x agência: a chave é o par.
+          - entity: colaborador_agencia
+            path: ${BANVIC_DATA_DIR}/colaborador_agencia.csv
+            keys: [cod_colaborador, cod_agencia]
+          - entity: colaboradores
+            path: ${BANVIC_DATA_DIR}/colaboradores.csv
+            keys: [cod_colaborador]
+          - entity: contas
+            path: ${BANVIC_DATA_DIR}/contas.csv
+            keys: [num_conta]
+          - entity: propostas_credito
+            path: ${BANVIC_DATA_DIR}/propostas_credito.csv
+            keys: [cod_proposta]
+          - entity: transacoes
+            path: ${BANVIC_DATA_DIR}/transacoes.csv
+            keys: [cod_transacao]
 
   loaders:
     - name: target-postgres
@@ -30,12 +46,13 @@ plugins:
       config:
         # Credenciais via variáveis de ambiente (TARGET_POSTGRES_*), nunca aqui.
         default_target_schema: raw
-        # TODO(você): estratégia de carga e idempotência
-        #   - upsert por chave primária? (por isso `keys` no tap)
-        #   - overwrite da tabela? Qual a diferença e quando usar cada uma?
-        # load_method: upsert
+        # Upsert pela chave primária do tap: reexecutar atualiza as mesmas linhas em vez de
+        # duplicar (idempotência) e mantém a tabela consultável durante a carga.
+        load_method: upsert
+        # Colunas _sdc_* com o momento da extração/carga, para rastrear quando cada linha chegou.
+        add_record_metadata: true
 
-# TODO(você): defina o job (tap-csv -> target-postgres) que o Airflow vai chamar
-# jobs:
-#   - name: ingest_erp
-#     tasks: [tap-csv target-postgres]
+jobs:
+  - name: ingest_erp
+    tasks:
+      - tap-csv target-postgres

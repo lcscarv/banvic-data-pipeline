@@ -8,3 +8,5 @@ meltano/output/
 __pycache__/
 *.pyc
 .DS_Store
+.vscode/
+*.session.sql
