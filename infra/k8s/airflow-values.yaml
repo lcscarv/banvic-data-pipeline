@@ -11,7 +11,7 @@ executor: LocalExecutor
 images:
   airflow:
     repository: banvic-airflow
-    tag: "0.2.0"
+    # tag: definida pelo Makefile (IMAGE), fonte única da versão da imagem.
     pullPolicy: IfNotPresent
 
 # UI exposta em NodePort 30080, mapeado para localhost:8080 no kind-config.
@@ -54,9 +54,24 @@ volumeMounts:
     mountPath: /data/raw
     readOnly: true
 
+# Segredos do próprio Airflow vêm do Secret `airflow-core` (make secrets), em vez de defaults
+# conhecidos ou chaves geradas a cada `helm upgrade`. A fernet-key cifra as conexões guardadas
+# no banco de metadados: se mudasse, elas ficariam ilegíveis.
+fernetKeySecretName: airflow-core
+apiSecretKeySecretName: airflow-core
+jwtSecretName: airflow-core
+data:
+  metadataSecretName: airflow-core
+postgresql:
+  auth:
+    existingSecret: airflow-core
+
 # Componentes desnecessários para esta DAG, desligados para economizar memória local:
 # triggerer só serve a operadores deferrable; statsd é métrica para Prometheus.
 triggerer:
   enabled: false
 statsd:
+  enabled: false
+# Redis é o broker do CeleryExecutor; com LocalExecutor não tem uso.
+redis:
   enabled: false

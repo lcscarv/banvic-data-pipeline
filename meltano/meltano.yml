@@ -39,6 +39,21 @@ plugins:
           - entity: transacoes
             path: ${BANVIC_DATA_DIR}/transacoes.csv
             keys: [cod_transacao]
+        # LGPD (minimização): dados pessoais aplicados na extração, antes de chegar ao warehouse.
+        # Documentos e e-mails viram hash com salt: continuam servindo para deduplicar e cruzar
+        # bases, mas não são legíveis. Nome e endereço de clientes não são usados pelo dashboard
+        # comercial e não são extraídos (__NULL__). O salt vem de TAP_CSV_STREAM_MAP_CONFIG (Secret).
+        stream_maps:
+          clientes:
+            cpfcnpj: md5(config['hash_seed'] + cpfcnpj)
+            email: md5(config['hash_seed'] + email)
+            primeiro_nome: __NULL__
+            ultimo_nome: __NULL__
+            endereco: __NULL__
+          colaboradores:
+            cpf: md5(config['hash_seed'] + cpf)
+            email: md5(config['hash_seed'] + email)
+            endereco: __NULL__
 
   loaders:
     - name: target-postgres
