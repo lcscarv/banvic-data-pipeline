@@ -1,4 +1,4 @@
-version: 1
+requires_meltano: ">=4,<5"
 default_environment: dev
 project_id: banvic-pipeline
 
@@ -12,7 +12,8 @@ plugins:
   extractors:
     - name: tap-csv
       variant: meltanolabs
-      pip_url: git+https://github.com/MeltanoLabs/tap-csv.git
+      # Fixado no commit testado (v1.2.0): o tap não é publicado no PyPI.
+      pip_url: git+https://github.com/MeltanoLabs/tap-csv.git@f942c18bd3fdf1884464101c2486e2cc0f49f3ed
       config:
         files:
           # Uma entrada por tabela do ERP. `keys` define a chave primária usada no upsert.
@@ -42,7 +43,7 @@ plugins:
   loaders:
     - name: target-postgres
       variant: meltanolabs
-      pip_url: meltanolabs-target-postgres
+      pip_url: meltanolabs-target-postgres==0.8.0
       config:
         # Credenciais via variáveis de ambiente (TARGET_POSTGRES_*), nunca aqui.
         default_target_schema: raw

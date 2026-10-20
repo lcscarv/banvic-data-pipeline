@@ -1,0 +1,9 @@
+.git
+.env
+.vscode
+docs
+data
+meltano/.meltano
+meltano/output
+**/__pycache__
+*.session.sql

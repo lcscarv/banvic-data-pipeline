@@ -1,10 +1,10 @@
 """DAG de ingestão do ERP do BanVic: valida arquivos, executa o Meltano e confere a carga."""
 from datetime import datetime, timedelta
 
-from airflow import DAG
-from airflow.operators.bash import BashOperator
-from airflow.operators.empty import EmptyOperator
-from airflow.sensors.filesystem import FileSensor
+from airflow.providers.standard.operators.bash import BashOperator
+from airflow.providers.standard.operators.empty import EmptyOperator
+from airflow.providers.standard.sensors.filesystem import FileSensor
+from airflow.sdk import DAG
 
 DATA_DIR = "/data/raw"
 TABLES = [

@@ -1,26 +1,62 @@
-# Values para o chart oficial apache-airflow (helm repo add apache-airflow https://airflow.apache.org)
-# TODO(você): complete e justifique cada escolha.
-executor: LocalExecutor   # TODO(você): por que não KubernetesExecutor/Celery neste cenário?
+# Values para o chart oficial apache-airflow 1.22.0 (Airflow 3.2.2).
+# Instalado por `make airflow`; usuário admin vem do .env via --set, nunca deste arquivo.
 
-webserver:
+# LocalExecutor: as tasks rodam como subprocessos do scheduler. Com uma DAG e ~4,7 MB de CSV,
+# dá paralelismo suficiente sem Redis/workers (Celery) nem um pod por task (KubernetesExecutor),
+# o que cabe nos recursos de um cluster local. Para escalar, a troca é só de executor.
+executor: LocalExecutor
+
+# Imagem custom (ver Dockerfile): Airflow + Meltano com plugins + DAGs embutidas.
+# Carregada no kind por `make image`; IfNotPresent evita tentar baixar de um registry.
+images:
+  airflow:
+    repository: banvic-airflow
+    tag: "0.1.0"
+    pullPolicy: IfNotPresent
+
+# UI exposta em NodePort 30080, mapeado para localhost:8080 no kind-config.
+apiServer:
   service:
     type: NodePort
     ports:
-      - name: airflow-ui
+      - name: api-server
         port: 8080
         nodePort: 30080
 
-# TODO(você): como as DAGs chegam ao cluster? (gitSync, imagem custom ou volume)
-# dags:
-#   gitSync: {}
+# DAGs vêm da imagem (/opt/airflow/dags), sem gitSync nem volume.
+dags:
+  persistence:
+    enabled: false
+  gitSync:
+    enabled: false
 
-# TODO(você): imagem customizada com Meltano instalado? Ou KubernetesPodOperator com imagem do Meltano?
-# images:
-#   airflow:
-#     repository:
-#     tag:
+# Variáveis para todos os componentes do Airflow.
+env:
+  - name: BANVIC_DATA_DIR
+    value: /data/raw
+  # Conexão usada pelo FileSensor (fs_default), declarada por env em vez de criada na UI.
+  - name: AIRFLOW_CONN_FS_DEFAULT
+    value: '{"conn_type": "fs", "extra": {"path": "/"}}'
 
-# TODO(você): injetar credenciais do Postgres via Secret (extraEnvFrom), nunca em texto puro
-# extraEnvFrom: |
-#   - secretRef:
-#       name: banvic-db
+# Credenciais do warehouse (TARGET_POSTGRES_*) vindas do Secret criado por `make secrets`.
+extraEnvFrom: |
+  - secretRef:
+      name: banvic-meltano
+
+# CSVs: o kind monta data/raw do host em /data/raw no nó; este hostPath leva até os pods.
+volumes:
+  - name: raw-data
+    hostPath:
+      path: /data/raw
+      type: Directory
+volumeMounts:
+  - name: raw-data
+    mountPath: /data/raw
+    readOnly: true
+
+# Componentes desnecessários para esta DAG, desligados para economizar memória local:
+# triggerer só serve a operadores deferrable; statsd é métrica para Prometheus.
+triggerer:
+  enabled: false
+statsd:
+  enabled: false
