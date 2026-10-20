@@ -1,6 +1,6 @@
 NAMESPACE := banvic
 ZIP ?= ../banvic_data2026.zip
-IMAGE := banvic-airflow:0.1.0
+IMAGE := banvic-airflow:0.2.0
 AIRFLOW_CHART_VERSION := 1.22.0
 
 .PHONY: cluster deploy data secrets image airflow clean
@@ -10,7 +10,8 @@ cluster:
 	sed "s|__DATA_DIR__|$(CURDIR)/data/raw|" infra/kind/kind-config.yaml | kind create cluster --config=-
 
 # banvic-db: lido pelo container do Postgres.
-# banvic-meltano: mesmas credenciais com os nomes que o target-postgres espera.
+# banvic-meltano: mesmas credenciais com os nomes que o target-postgres espera,
+#   mais a Airflow Connection `banvic_dw` (AIRFLOW_CONN_*) usada na validação pós-carga.
 secrets:
 	@set -a; . ./.env; set +a; \
 	kubectl -n $(NAMESPACE) create secret generic banvic-db \
@@ -24,6 +25,7 @@ secrets:
 	  --from-literal=TARGET_POSTGRES_USER=$$POSTGRES_USER \
 	  --from-literal=TARGET_POSTGRES_PASSWORD=$$POSTGRES_PASSWORD \
 	  --from-literal=TARGET_POSTGRES_DATABASE=$$POSTGRES_DB \
+	  --from-literal=AIRFLOW_CONN_BANVIC_DW=postgres://$$POSTGRES_USER:$$POSTGRES_PASSWORD@$$POSTGRES_HOST:$$POSTGRES_PORT/$$POSTGRES_DB \
 	  --dry-run=client -o yaml | kubectl apply -f -
 
 image:

@@ -11,7 +11,7 @@ executor: LocalExecutor
 images:
   airflow:
     repository: banvic-airflow
-    tag: "0.1.0"
+    tag: "0.2.0"
     pullPolicy: IfNotPresent
 
 # UI exposta em NodePort 30080, mapeado para localhost:8080 no kind-config.
