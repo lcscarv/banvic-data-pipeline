@@ -3,6 +3,7 @@
 .vscode
 docs
 data
+*.zip
 meltano/.meltano
 meltano/output
 **/__pycache__

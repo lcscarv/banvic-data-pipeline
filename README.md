@@ -51,9 +51,9 @@ Fluxo de ponta a ponta:
 ## Como executar
 
 ### Pré-requisitos
-- Docker com **8 GB de RAM** e **~15 GB de disco livre** (a imagem do Airflow tem ~2,5 GB e é copiada para o nó do kind)
+- Docker com **~6 GB de RAM** para a VM (testado num Mac com 8 GB no total) e **~15 GB de disco livre** (a imagem do Airflow tem ~2,5 GB e é copiada para o nó do kind)
 - [kind](https://kind.sigs.k8s.io/), kubectl e [helm](https://helm.sh/)
-- O arquivo `banvic_data2026.zip` na pasta acima do repositório (ou indique outro caminho com `ZIP=`)
+- O arquivo `banvic_data2026.zip` na raiz do repositório (ou indique outro caminho com `ZIP=`)
 
 ### Passo a passo
 
@@ -62,7 +62,7 @@ Fluxo de ponta a ponta:
 cp .env.example .env
 # preencha cada valor; o próprio .env.example indica como gerar senhas e a fernet key
 
-# 2. Dados de origem
+# 2. Dados de origem: banvic_data2026.zip na raiz do repositório
 make data                      # ou: make data ZIP=/caminho/banvic_data.zip
 
 # 3. Cluster e aplicação
@@ -102,6 +102,7 @@ kubectl -n banvic port-forward svc/postgres 5433:5432
 | `meltano/` | Projeto Meltano: taps, targets, job e lockfiles dos plugins |
 | `airflow/dags/` | DAG de ingestão |
 | `Dockerfile` | Imagem do Airflow com Meltano, plugins e DAGs |
+| `banvic_data2026.zip` | Dados de origem do ERP (fora do git) |
 | `data/raw/` | CSVs extraídos do zip (fora do git) |
 
 ## Dados

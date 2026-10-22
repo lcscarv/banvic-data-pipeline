@@ -1,5 +1,5 @@
 NAMESPACE := banvic
-ZIP ?= ../banvic_data2026.zip
+ZIP ?= banvic_data2026.zip
 IMAGE := banvic-airflow:0.3.0
 AIRFLOW_CHART_VERSION := 1.22.0
 AIRFLOW_METADATA_HOST := airflow-postgresql.$(NAMESPACE).svc.cluster.local
@@ -73,6 +73,7 @@ deploy:
 	$(MAKE) airflow
 
 data:
+	@test -f $(ZIP) || { echo "Arquivo $(ZIP) não encontrado. Coloque o zip na raiz do projeto ou use: make data ZIP=/caminho/do/arquivo.zip"; exit 1; }
 	mkdir -p data/raw
 	unzip -oj $(ZIP) -d data/raw
 

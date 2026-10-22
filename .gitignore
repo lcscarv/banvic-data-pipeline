@@ -3,6 +3,7 @@ docs/
 infra/k8s/secrets.yaml
 data/raw/*
 !data/raw/.gitkeep
+banvic_data*.zip
 meltano/.meltano/
 meltano/output/
 __pycache__/
