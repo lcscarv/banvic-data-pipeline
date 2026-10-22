@@ -58,9 +58,8 @@ Fluxo de ponta a ponta:
 ### Passo a passo
 
 ```bash
-# 1. Credenciais locais (nunca versionadas)
-cp .env.example .env
-# preencha cada valor; o próprio .env.example indica como gerar senhas e a fernet key
+# 1. Credenciais locais (nunca versionadas): gera o .env com valores aleatórios
+make env
 
 # 2. Dados de origem: banvic_data2026.zip na raiz do repositório
 make data                      # ou: make data ZIP=/caminho/banvic_data.zip
@@ -83,6 +82,7 @@ kubectl -n banvic port-forward svc/postgres 5433:5432
 
 | Alvo | O que faz |
 |---|---|
+| `make env` | Cria o `.env` a partir do `.env.example`, gerando credenciais aleatórias só para as chaves vazias (nunca altera valores existentes) |
 | `make data` | Extrai o zip em `data/raw` |
 | `make cluster` | Cria o cluster kind com `data/raw` montada no nó |
 | `make secrets` | Cria ou atualiza os Secrets a partir do `.env` |
@@ -102,6 +102,7 @@ kubectl -n banvic port-forward svc/postgres 5433:5432
 | `meltano/` | Projeto Meltano: taps, targets, job e lockfiles dos plugins |
 | `airflow/dags/` | DAG de ingestão |
 | `Dockerfile` | Imagem do Airflow com Meltano, plugins e DAGs |
+| `scripts/` | Geração do `.env` |
 | `banvic_data2026.zip` | Dados de origem do ERP (fora do git) |
 | `data/raw/` | CSVs extraídos do zip (fora do git) |
 

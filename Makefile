@@ -4,7 +4,11 @@ IMAGE := banvic-airflow:0.3.0
 AIRFLOW_CHART_VERSION := 1.22.0
 AIRFLOW_METADATA_HOST := airflow-postgresql.$(NAMESPACE).svc.cluster.local
 
-.PHONY: cluster deploy data secrets db-roles image airflow clean
+.PHONY: env cluster deploy data secrets db-roles image airflow clean
+
+# Cria o .env a partir do .env.example com credenciais aleatórias; não altera valores existentes.
+env:
+	@./scripts/gen-env.sh
 
 cluster:
 	mkdir -p data/raw
